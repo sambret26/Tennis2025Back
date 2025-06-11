@@ -114,7 +114,7 @@ def addSchedule(sheet, day, courtsId, courtNameMap):
     else:
         for (courtId, matchesInCourt) in matchesByCourts:
             for match in matchesInCourt:
-                slots = (match.hour, match.label, courtId)
+                slots = (match.hour.replace(':','H'), match.label, courtId)
                 timesSlots.append(slots)
     if(len(timesSlots) == 0):
         return
