@@ -26,6 +26,7 @@ from services.controllers.CompetitionController import competitionBp
 
 from models.Channel import Channel # Pour créer la table sans bp
 from models.Message import Message # Pour créer la table sans bp
+from models.Convocation import Convocation # Pour créer la table sans bp
 
 from flask_cors import CORS
 

@@ -4,6 +4,7 @@ from models.Team import Team
 from models.Message import Message
 from models.PlayerBalance import PlayerBalance
 from models.PlayerCategories import PlayerCategories
+from models.Convocation import Convocation
 from repositories.CompetitionRepository import CompetitionRepository
 from repositories.CategoryRepository import CategoryRepository
 from repositories.PlayerRepository import PlayerRepository
@@ -12,6 +13,8 @@ from repositories.RankingRepository import RankingRepository
 from repositories.MessageRepository import MessageRepository
 from repositories.PlayerBalanceRepository import PlayerBalanceRepository
 from repositories.PlayerCategoriesRepository import PlayerCategoriesRepository
+from repositories.ConvocationRepository import ConvocationRepository
+from repositories.MatchRepository import MatchRepository
 from moja import mojaService
 
 playerRepository = PlayerRepository()
@@ -22,6 +25,8 @@ rankingRepository = RankingRepository()
 messageRepository = MessageRepository()
 playerBalanceRepository = PlayerBalanceRepository()
 playerCategoriesRepository = PlayerCategoriesRepository()
+convocationRepository = ConvocationRepository()
+matchRepository = MatchRepository()
 
 def inscriptions(sendNotif):
     homologationId = competitionRepository.getHomologationId()
@@ -42,6 +47,29 @@ def inscriptions(sendNotif):
             continue
         playerCategorie.playerId = playerId
     playerCategoriesRepository.addPlayerCategories(playerCategories)
+    return True
+
+def convocations():
+    convacationsDB = convocationRepository.getConvocationsMap()
+    categories = categoryRepository.getAllCategories()
+    playersMap = playerRepository.getPlayerCrmIdMap()
+    matchesMap = matchRepository.getMatchesMap()
+    convocationsToCreate = []
+    messages = []
+    for categorie in categories:
+        convocationsMoja = mojaService.getConvocations(categorie.fftId)
+        for convocationMoja in convocationsMoja:
+            convocationDB = convacationsDB.get(convocationMoja['conId'])
+            if convocationDB is None:
+                newConvo = Convocation.fromFFT(convocationMoja)
+                convocationsToCreate.append(newConvo)
+                if newConvo.state == "ACPT":
+                    addConvoMessage(messages, playersMap, matchesMap, newConvo)
+            elif convocationDB.state != convocationMoja['statutConvocationCode']:
+                if convocationMoja['statutConvocationCode'] == "ACPT":
+                    addConvoMessage(messages, playersMap, matchesMap, newConvo)
+    convocationRepository.addConvocations(convocationsToCreate)
+    messageRepository.addMessages(messages)
     return True
 
 def updateCalendar():
@@ -215,6 +243,12 @@ def handleOldCategories(player, newCategories, oldCategories, messages, sendNoti
                 if player.ranking :
                     msg += f" classé(e) {player.ranking.simple}"
                 messages.append(Message(category.code, msg))
+
+def addConvoMessage(messages, playersMap, matchesMap, convo):
+    playerName = playersMap.get(convo.crmId).getFullName()
+    matchLabel = matchesMap.get(convo.matchId).label
+    message = Message("CONVO", f"{playerName} à accepté sa convocation pour le match {matchLabel}")
+    messages.append(message)
 
 def sendMessages(newPlayers, newRankingsPlayers):
     messages = []

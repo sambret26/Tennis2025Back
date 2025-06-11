@@ -7,6 +7,7 @@ class Player(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     fftId = db.Column(db.BigInteger, unique=True, index=True)
+    crmId = db.Column(db.BigInteger, unique=True, index=True)
     lastName = db.Column(db.String, nullable=False, index=True)
     firstName = db.Column(db.String, nullable=False, index=True)
     rankingId = db.Column(db.Integer, db.ForeignKey("rankings.id"), index=True)
@@ -29,10 +30,11 @@ class Player(db.Model):
     reductions = db.relationship("Reduction", back_populates="player", lazy="joined")
     balance = db.relationship("PlayerBalance", back_populates="player", uselist=False)
 
-    def __init__(self, id=None, fftId=None, lastName=None, firstName=None, 
+    def __init__(self, id=None, fftId=None, crmId=None, lastName=None, firstName=None, 
             rankingId=None, club=None, phoneNumber=None, email=None, toDelete=False):
         self.id = id
         self.fftId = fftId
+        self.crmId = crmId
         self.lastName = lastName
         self.firstName = firstName
         self.rankingId = rankingId
@@ -47,6 +49,7 @@ class Player(db.Model):
             "lastName": self.lastName,
             "firstName": self.firstName,
             "fftId": self.fftId,
+            "crmId": self.crmId,
             "rankingId": self.rankingId,
             "club": self.club,
             "phoneNumber": self.phoneNumber,
@@ -115,18 +118,10 @@ class Player(db.Model):
     def fromFFT(cls, data):
         return cls(
             fftId=data['jouId'],
+            crmId=data['idCrm'],
             firstName=data['prenom'].title(),
             lastName=data['nom'].title(),
             club=data['clubLibelle'],
             phoneNumber=data['numTel'],
             email=data['mail']
-        )
-
-    @classmethod
-    def fromFFT2(cls, data):
-        return cls(
-            fftId=data['joueur2Id'],
-            firstName=data['joueur2Prenom'].title(),
-            lastName=data['joueur2Nom'].title(),
-            club=data['clubJoueur2']
         )

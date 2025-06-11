@@ -49,6 +49,10 @@ class PlayerRepository:
     def getPlayersNamesMap():
         return {player.lastName + '_' + player.firstName: player for player in Player.query.all()}
 
+    @staticmethod
+    def getPlayerCrmIdMap():
+        return {player.crmId: player for player in Player.query.all()}
+    
     #ADDERS
     @staticmethod
     def addPlayer(player):

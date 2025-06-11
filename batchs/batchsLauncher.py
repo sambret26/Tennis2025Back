@@ -20,6 +20,13 @@ async def inscriptionsLoop():
     batchs.inscriptions(True)
     log.info(BATCH, "Fin du batch inscriptions")
 
+async def convocationLoop():
+    if settingRepository.getBatchsActive() is False:
+        return
+    log.info(BATCH, "Lancement du batch convocations")
+    batchs.convocations()
+    log.info(BATCH, "Fin du batch convocations")
+
 async def sendNotifLoop(bot):
     if settingRepository.getBatchsActive() is False:
         return

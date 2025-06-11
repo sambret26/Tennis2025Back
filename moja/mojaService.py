@@ -75,6 +75,10 @@ def getResultUrl(matchId):
     resultUrl = urlRepository.getUrlByLabel("Results")
     return resultUrl.replace("MATCH_ID", str(matchId))
 
+def getConvocationsUrl(categoryFftId):
+    resultUrl = urlRepository.getUrlByLabel("Convocations")
+    return resultUrl.replace("CATEGORY_ID", str(categoryFftId))
+
 def getCourtsUrl():
     return urlRepository.getUrlByLabel("Courts")
 
@@ -227,6 +231,10 @@ def updateGrid(categoryId, categoryFftId, categoryCode):
         gridRepository.deleteAllGridsByCategory(categoryId)
         gridRepository.addGrids(gridsToAdd)
     return 200
+
+def getConvocations(categoryFftId):
+    url = getConvocationsUrl(categoryFftId)
+    return mojaRequests.sendGetRequest(url)
 
 def getPlayersInfos(homologationId):
     url = getPlayersUrl(homologationId)
