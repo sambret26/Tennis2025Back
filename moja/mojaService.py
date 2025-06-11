@@ -160,6 +160,7 @@ def updateCategories():
 def updateAllMatches():
     courtsMap = courtRepository.getCourtsMap()
     playersIdMap = playerCategoriesRepository.getPlayersMap()
+    teamsIdMap = teamRepository.getTeamsMap()
     nextGridMap = gridRepository.getNextGridsMap()
     gridsFFTMap = gridRepository.getGridsFFTMap()
     matchesMap = matchRepository.getMatchesMap()
@@ -173,7 +174,7 @@ def updateAllMatches():
     for grid in gridRepository.getAllGrids():
         if oldCategory != grid.categoryId:
             matchIndex = 1
-        matchAdded = updateMatches(newMatchs, matchesMap, tempMatchesMap, grid, gridsFFTMap, nextGridMap, matchIndex, report, courtsMap, playersIdMap, playersInfo)
+        matchAdded = updateMatches(newMatchs, matchesMap, tempMatchesMap, grid, gridsFFTMap, nextGridMap, matchIndex, report, courtsMap, playersIdMap, teamsIdMap, playersInfo)
         if matchAdded == 404:
             result = 404
         else:
@@ -239,7 +240,7 @@ def getRankingsInfos():
     url = getRankingsUrl()
     return mojaRequests.sendGetRequest(url)
 
-def updateMatches(newMatchs, matchesMap, tempMatchesMap, grid, gridsFFTMap, nextGridMap, matchIndex, report, courtsMap, playersIdMap, playersInfo):
+def updateMatches(newMatchs, matchesMap, tempMatchesMap, grid, gridsFFTMap, nextGridMap, matchIndex, report, courtsMap, playersIdMap, teamsIdMap, playersInfo):
     matches = []
     #if grid.type == "POU": #TODO Poules
     #    url = getGridDataUrlPoule(grid.fftId)
@@ -253,7 +254,7 @@ def updateMatches(newMatchs, matchesMap, tempMatchesMap, grid, gridsFFTMap, next
     else:
         sortedMatchs = matchesFromFFT
     for match in sortedMatchs:
-        newMatch = createMatch(match, grid, courtsMap, grid.category.code, matchIndex, playersIdMap)
+        newMatch = createMatch(match, grid, courtsMap, grid.category.code, matchIndex, playersIdMap, teamsIdMap)
         matches.append(newMatch)
         matchIndex += 1
         tempMatchesMap[str(newMatch.fftId)] = newMatch.label
@@ -276,21 +277,20 @@ def getTuple(numeroMatch):
     value3 = int(numeroMatch.split('Q')[1].split('T')[0])
     return (value1, value2, value3)
 
-def createMatch(match, grid, courtsMap, categoryCode, matchIndex, playersIdMap):
+def createMatch(match, grid, courtsMap, categoryCode, matchIndex, playersIdMap, teamsIdMap):
     newMatch = Match.fromFFT(match)
     newMatch.categoryId = grid.categoryId
     newMatch.gridId = grid.id
-    #newMatch.double = match["nomCategorie"].startswith("D")
-    newMatch.double = False #TODO : double
+    newMatch.double = match["epreuveIsDouble"]
     newMatch.courtId = courtsMap.get(int(match['courtId'])) if match['courtId'] is not None else None
     newMatch.label = categoryCode + str(matchIndex).zfill(2)
-    setPlayersOrTeam(newMatch, match, playersIdMap)
+    setPlayersOrTeam(newMatch, match, playersIdMap, teamsIdMap)
     setNextRound(newMatch, match)
     setWinner(newMatch, match)
     setProgrammation(newMatch, match)
     return newMatch
 
-def setPlayersOrTeam(match, matchData, playersIdMap):
+def setPlayersOrTeam(match, matchData, playersIdMap, teamsIdMap):
     prec = 0
     qe = 0
     if matchData['insId1'] is None:
@@ -301,7 +301,7 @@ def setPlayersOrTeam(match, matchData, playersIdMap):
             match.futurPlayer1 = "QE"
             qe += 1
     elif match.double:
-        match.team1Id = getTeamId(matchData['joueurList'], 0, playersIdMap)
+        match.team1Id = getTeamId(matchData['insId1'], teamsIdMap)
     else:
         match.player1Id = getPlayerId(matchData['insId1'], playersIdMap)
     if matchData['insId2'] is None:
@@ -310,7 +310,7 @@ def setPlayersOrTeam(match, matchData, playersIdMap):
         elif not qe and matchData['haveQe']: # TODO : 2 qe ?
             match.futurPlayer2 = "QE"
     elif match.double:
-        match.team2Id = getTeamId(matchData['joueurList'], 1, playersIdMap)
+        match.team2Id = getTeamId(matchData['insId2'], teamsIdMap)
     else:
         match.player2Id = getPlayerId(matchData['insId2'], playersIdMap)
 
@@ -368,21 +368,10 @@ def getPlayerId(inscriptionId, playersIdMap):
         return None
     return playersIdMap.get(inscriptionId)
 
-def getTeamId(playersList, i, playersIdMap):
-    if i == 0 :
-        fftId1 = int(playersList[0]['joueurId']) if len(playersList) > 0 else None
-        fftId2 = int(playersList[1]['joueurId']) if len(playersList) > 1 else None
-    else :
-        fftId1 = int(playersList[2]['joueurId']) if len(playersList) > 2 else None
-        fftId2 = int(playersList[3]['joueurId']) if len(playersList) > 3 else None
-    if fftId1 is None or fftId2 is None:
+def getTeamId(inscriptionId, teamsIdMap):
+    if inscriptionId is None:
         return None
-    player1Id = playersIdMap.get(fftId1)
-    player2Id = playersIdMap.get(fftId2)
-    team = teamRepository.getTeamByPlayersIds(player1Id, player2Id)
-    if team is None:
-        return None
-    return team.id
+    return teamsIdMap.get(inscriptionId).id
 
 def setResult(matchFftId, winnerTeam, score):
     resultUlt = getResultUrl(matchFftId)
