@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from moja import mojaService
 from repositories.MatchRepository import MatchRepository
 from repositories.SettingRepository import SettingRepository
+from logger.logger import log
 
 matchRepository = MatchRepository()
 settingRepository = SettingRepository()
