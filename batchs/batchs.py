@@ -66,8 +66,9 @@ def convocations():
                 if newConvo.state == "ACPT":
                     addConvoMessage(messages, playersMap, matchesMap, newConvo)
             elif convocationDB.state != convocationMoja['statutConvocationCode']:
+                convocationDB.state = convocationMoja['statutConvocationCode']
                 if convocationMoja['statutConvocationCode'] == "ACPT":
-                    addConvoMessage(messages, playersMap, matchesMap, newConvo)
+                    addConvoMessage(messages, playersMap, matchesMap, convocationDB)
     convocationRepository.addConvocations(convocationsToCreate)
     messageRepository.addMessages(messages)
     return True
