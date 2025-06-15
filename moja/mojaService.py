@@ -347,7 +347,7 @@ def setWinner(match, matchData):
 def setScore(match, matchData):
     score = ""
     for set in matchData["sets"]:
-        if ["scoreA"] == 0 and set["scoreB"] == 0:
+        if set["scoreA"] == 0 and set["scoreB"] == 0:
             break
         if score != "":
             score += " "

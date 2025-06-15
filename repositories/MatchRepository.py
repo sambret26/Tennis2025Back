@@ -18,8 +18,7 @@ class MatchRepository:
 
     @staticmethod
     def getMatchesMap():
-        matches = Match.query.with_entities(Match.fftId, Match.id, Match.label, Match.player1Id, Match.player2Id, Match.team1Id, Match.team2Id, Match.day, Match.hour, Match.courtId, Match.finish, Match.winnerId, Match.teamWinnerId, Match.score, Match.nextRound, Match.calId).all()
-        return {match.fftId: match for match in matches}
+        return {match.fftId: match for match in Match.query.all()}
 
     @staticmethod
     def getMatchesLabelMap():

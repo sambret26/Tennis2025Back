@@ -65,10 +65,14 @@ def convocations():
                 convocationsToCreate.append(newConvo)
                 if newConvo.state == "ACPT":
                     addConvoMessage(messages, playersMap, matchesMap, newConvo)
+                elif newConvo.state == "NCFR":
+                    addSendConvoMessage(messages, playersMap, matchesMap, newConvo)
             elif convocationDB.state != convocationMoja['statutConvocationCode']:
                 convocationDB.state = convocationMoja['statutConvocationCode']
                 if convocationMoja['statutConvocationCode'] == "ACPT":
                     addConvoMessage(messages, playersMap, matchesMap, convocationDB)
+                if convocationMoja['statutConvocationCode'] == "NCFR":
+                    addSendConvoMessage(messages, playersMap, matchesMap, convocationDB)
     convocationRepository.addConvocations(convocationsToCreate)
     messageRepository.addMessages(messages)
     return True
@@ -249,6 +253,14 @@ def addConvoMessage(messages, playersMap, matchesMap, convo):
     playerName = playersMap.get(convo.crmId).getFullName()
     matchLabel = matchesMap.get(convo.matchId).label
     message = Message("CONVO", f"{playerName} à accepté sa convocation pour le match {matchLabel}")
+    messages.append(message)
+
+def addSendConvoMessage(messages, playersMap, matchesMap, convo):
+    playerName = playersMap.get(convo.crmId).getFullName()
+    match = matchesMap.get(convo.matchId)
+    date = match.getFormattedDate()
+    hour = match.getFormattedHour()
+    message = Message("SEND_CONVO", f"{playerName} à été convoqué pour le match {match.label} le {date} à {hour}")
     messages.append(message)
 
 def sendMessages(newPlayers, newRankingsPlayers):
