@@ -251,8 +251,10 @@ def handleOldCategories(player, newCategories, oldCategories, messages, sendNoti
 
 def addConvoMessage(messages, playersMap, matchesMap, convo):
     playerName = playersMap.get(convo.crmId).getFullName()
-    matchLabel = matchesMap.get(convo.matchId).label
-    message = Message("CONVO", f"{playerName} à accepté sa convocation pour le match {matchLabel}")
+    match = matchesMap.get(convo.matchId)
+    date = match.getFormattedDate()
+    hour = match.getFormattedHour()
+    message = Message("CONVO", f"{playerName} à accepté sa convocation pour le match {match.label} le {date} à {hour}")
     messages.append(message)
 
 def addSendConvoMessage(messages, playersMap, matchesMap, convo):
