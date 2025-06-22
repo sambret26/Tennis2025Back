@@ -32,5 +32,5 @@ class Ranking(db.Model):
     def fromFFT(cls, data):
         return cls(
             fftId=data['echelon'],
-            simple=data['libelle']
+            simple=data['libelle'].replace(' ','')
         )
