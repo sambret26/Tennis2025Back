@@ -42,7 +42,7 @@ def inscriptions(sendNotif):
     for playerCategorie in playerCategories:
         playerId = playersMap.get(playerCategorie.playerId)
         if playerId is None :
-            log.error(BATCH, f"Player {playerCategorie.playerId} not found")
+            #log.error(BATCH, f"Player {playerCategorie.playerId} not found")
             playerCategories.remove(playerCategorie)
             continue
         playerCategorie.playerId = playerId
@@ -62,16 +62,17 @@ def convocations():
             convocationDB = convacationsDB.get(convocationMoja['conId'])
             if convocationDB is None:
                 newConvo = Convocation.fromFFT(convocationMoja)
-                convocationsToCreate.append(newConvo)
-                if newConvo.state == "ACPT":
+                if newConvo.crmId is not None:
+                    convocationsToCreate.append(newConvo)
+                if newConvo.state == "ACPT" and newConvo.crmId is not None:
                     addConvoMessage(messages, playersMap, matchesMap, newConvo)
-                elif newConvo.state == "NCFR":
+                elif newConvo.state == "NCFR" and newConvo.crmId is not None:
                     addSendConvoMessage(messages, playersMap, matchesMap, newConvo)
             elif convocationDB.state != convocationMoja['statutConvocationCode']:
                 convocationDB.state = convocationMoja['statutConvocationCode']
-                if convocationMoja['statutConvocationCode'] == "ACPT":
+                if convocationMoja['statutConvocationCode'] == "ACPT" and convocationDB.crmId is not None:
                     addConvoMessage(messages, playersMap, matchesMap, convocationDB)
-                if convocationMoja['statutConvocationCode'] == "NCFR":
+                if convocationMoja['statutConvocationCode'] == "NCFR" and convocationDB.crmId is not None:
                     addSendConvoMessage(messages, playersMap, matchesMap, convocationDB)
     convocationRepository.addConvocations(convocationsToCreate)
     messageRepository.addMessages(messages)
