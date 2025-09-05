@@ -76,6 +76,7 @@ class Match(db.Model):
             'id': self.id,
             'fftId': self.fftId,
             'categoryId': self.categoryId,
+            'categoryLabel' : self.category.label if self.category is not None else "NC",
             'gridId': self.gridId,
             'double': self.double,
             'label': self.label,
